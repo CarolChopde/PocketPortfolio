@@ -11,11 +11,8 @@ export const setApiUrl = (url: string) => {
 
 export const getApiUrl = (): string => {
   if (customApiUrl) return customApiUrl;
-  if (Platform.OS === 'web') {
-    return 'http://localhost:5000';
-  }
-  // For both iOS and Android physical devices running Expo Go
-  return 'http://192.168.29.211:5000';
+  // Live Cloud REST API hosted on Render
+  return 'https://pocketportfolio-api.onrender.com';
 };
 
 // Secure Token Storage helpers using Expo SecureStore
