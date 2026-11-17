@@ -1,0 +1,71 @@
+// Prisma Schema for PocketPortfolio
+// Defines the database structure, data types, and relationships.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum defining valid transaction types
+enum TransactionType {
+  BUY
+  SELL
+}
+
+// 1. Users Model: stores authentication and account details
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+
+  // Relationships: One user can have multiple investments
+  investments  Investment[]
+
+  @@map("users")
+}
+
+// 2. Investments Model: stores each asset owned by a user
+model Investment {
+  id             String        @id @default(uuid())
+  userId         String
+  name           String
+  category       String        // e.g. "Equity", "Mutual Funds", "Gold", "Fixed Deposits", "Other"
+  investedAmount Decimal       @db.Decimal(14, 2)
+  currentValue   Decimal       @db.Decimal(14, 2)
+  purchaseDate   DateTime
+  description    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relationships:
+  // Belongs to User. If user is deleted, their investments are deleted (Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // One investment can have multiple purchase/sale transaction records
+  transactions   Transaction[]
+
+  @@map("investments")
+}
+
+// 3. Transactions Model: tracks individual buy/sell events for an investment
+model Transaction {
+  id              String          @id @default(uuid())
+  investmentId    String
+  type            TransactionType
+  amount          Decimal         @db.Decimal(14, 2)
+  transactionDate DateTime
+  description     String?
+  createdAt       DateTime        @default(now())
+
+  // Relationships:
+  // Belongs to an Investment. If the investment is deleted, its transactions are deleted (Cascade)
+  investment      Investment      @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
